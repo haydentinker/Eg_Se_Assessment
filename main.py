@@ -1,7 +1,10 @@
 from process_game_state import ProcessGameState
+import pandas as pd
+import time
 
 
 def main():
+    st = time.time()
     gameState = ProcessGameState(
         "./data/game_state_frame_data.parquet",
         [
@@ -12,6 +15,9 @@ def main():
             (-1565, 580),
         ],
     )
+    et = time.time()
+    time1 = et - st
+    print("Time:", time1)
 
 
 if __name__ == "__main__":
