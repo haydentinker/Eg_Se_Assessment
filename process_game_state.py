@@ -1,46 +1,38 @@
 import pandas as pd
 
-# [-1735, 250]
-# [-2024, 398]
-# [-2806, 742]
-# [-2472, 1233]
-# [-1565, 580]
-
 
 class ProcessGameState:
-    def __init__(self, file_path):
+    def __init__(self, file_path, area_of_interest):
         self.file_path = file_path
+        self.edges = get_edges(area_of_interest)
         self.df = self.read_file()
-        self.area_of_interest = [
-            (-1735, 250),
-            (-2024, 398),
-            (-2806, 742),
-            (-2472, 1233),
-            (-1565, 580),
-        ]
-        # self.area_of_interest = area_of_interest
 
     def read_file(self):
-        self.df = pd.read_parquet(self.file_path, engine="fastparquet")
-        self.df.to_csv("./data/dfToCSV.csv", index=False)
-        mask = pd.Series([False] * len(self.df))
-        for i in range(len(self.df)):
-            mask[i] = self.is_inside((self.df[i]["x"], self.df[i]["y"]))
-        self.df = self.df[mask]
-        print(len(self.df.index))
+        df = pd.read_parquet(self.file_path, engine="fastparquet")
+        mask = pd.Series([False] * len(df))
+        for i in range(len(df)):
+            mask[i] = self.is_inside((df.at[i, "x"], df.at[i, "y"]), self.edges)
+        df = df[mask]
+        df.to_csv("./data/dfToCSV.csv", index=False)
+        print(len(df.index))
+        return df
 
-    def is_inside(self, point):
-        x, y = point
-        n = len(self.area_of_interest)
-        inside = False
-        p1x, p1y = polygon[0]
-        for i in range(n + 1):
-            p2x, p2y = polygon[i % n]
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            xinters(y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
-                            inside = not inside
-        return inside
+
+def is_inside(point, edges):
+    xp, yp = point
+    count = 0
+    for edge in edges:
+        (x1, y1), (x2, y2) = edge
+        if (yp < y1) != (yp < y2) and xp < x1 + ((yp - y1) / (y2 - y1) * (x2 - x1)):
+            count += 1
+    return count % 2 == 1
+
+
+def get_edges(area_of_interest):
+    edges = []
+    for i in range(0, len(area_of_interest)):
+        if i != len(area_of_interest) - 1:
+            edges.append((area_of_interest[i], area_of_interest[i + 1]))
+        else:
+            edges.append((area_of_interest[i], area_of_interest[0]))
+    return edges
