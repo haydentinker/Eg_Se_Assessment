@@ -1,5 +1,5 @@
-from process_game_state import ProcessGameState
 import pandas as pd
+from process_game_state import ProcessGameState
 import time
 
 
@@ -15,9 +15,11 @@ def main():
             (-1565, 580),
         ],
     )
+    print(gameState.common_strategy())
     et = time.time()
     time1 = et - st
     print("Time:", time1)
+    print(gameState.weapon_classes)
 
 
 if __name__ == "__main__":
