@@ -20,6 +20,7 @@ def main():
     time1 = et - st
     print("Time:", time1)
     print(gameState.weapon_classes)
+    gameState.create_heat_map("BombsiteB")
 
 
 if __name__ == "__main__":
