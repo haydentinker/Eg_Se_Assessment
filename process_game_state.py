@@ -1,6 +1,7 @@
 import pandas as pd
 import pyarrow.parquet as pyarrow
-import seaborn as sb
+import matplotlib.pyplot as plt
+import numpy as np
 from point_in_polygon import get_edges, is_inside
 
 
@@ -45,10 +46,68 @@ class ProcessGameState:
         ).dropna()
         return f"{len(strategy_df)/len(((self.df.team==team) & (self.df.side==side)).dropna()):.5%}"
 
+    def average_time(self, area_name, team, side):
+        # Filter the data for the specified area
+        has_smg = self.df.apply(lambda row: has_smgs(row["inventory"]), axis=1)
+        filtered_df = self.df[(self.df["area_name"] == area_name) & (has_smg)]
+
+        average_time = filtered_df["seconds"].mean()
+
+        print(
+            f"The average time where at least two players are holding SMGs in {area_name} is: {average_time}"
+        )
+
     def create_heat_map(self, location, team="Team2", side="CT"):
         location_df = self.df.where(
             (self.df.team == team)
             & (self.df.side == side)
             & (self.df.area_name == location)
         ).dropna()
-        print(len(location_df))
+
+        # Check if there are data points to create the heatmap
+        if location_df.empty:
+            print("No data points found for the specified location.")
+            return
+
+        num_bins_x = 50
+        num_bins_y = 50
+
+        # Compute the range based on the minimum and maximum values in the dataset
+        x_min, x_max = location_df["x"].min(), location_df["x"].max()
+        y_min, y_max = location_df["y"].min(), location_df["y"].max()
+
+        # Compute the 2D histogram
+        hist, x_edges, y_edges = np.histogram2d(
+            location_df["x"].values,
+            location_df["y"].values,
+            bins=(num_bins_x, num_bins_y),
+            range=((x_min, x_max), (y_min, y_max)),
+        )
+        grid = hist.T
+
+        # Plot the heatmap
+        plt.figure(figsize=(10, 8))  # Adjust the figure size as needed
+        heatmap = plt.imshow(grid, cmap="jet", interpolation="lanczos")
+
+        # Add gridlines
+        plt.grid(which="major", axis="both", linestyle="-", color="k", linewidth=1)
+
+        # Add a colorbar
+        plt.colorbar(heatmap)
+
+        # Set appropriate labels and title
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("Heatmap: {} - {} - {}".format(location, team, side))
+
+        # Display the plot
+        plt.show()
+
+
+def has_smgs(inventory):
+    if inventory is None:
+        return False
+    for item in inventory:
+        if item["weapon_class"] == "SMG":
+            return True
+    return False
