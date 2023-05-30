@@ -13,7 +13,7 @@ def main():
             (-1565, 580),
         ],
     )
-    print(f"How often team enters the boundary:{State.common_strategy()}")
+    print(f"How often team enters the boundary:{gameState.common_strategy()}")
     print(f"Weapon Classes: {gameState.weapon_classes}")
     gameState.average_time("BombsiteB", "Team2", "T")
     print("Generating Heat Map")

@@ -20,12 +20,10 @@ class ProcessGameState:
         self.within_area_df = self.filter_df_within_area()
 
     def read_file(self):
-        ### Reads the paraquet file and cleans data
+        ### Reads the paraquet file
         ### Also looks at player's inventory to extract weapon classes and puts it into set
         table = pyarrow.read_table(self.file_path)
         df = table.to_pandas()
-        print(df.area_name.unique())
-        print(len(df.index))
         return df
 
     def filter_df_within_area(self):
